@@ -1,0 +1,1 @@
+- [Build incrementally](build-incrementally.md) — user wants minimal step-by-step builds, not up-front production scope

@@ -1,0 +1,36 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+client_id = "cc1a3cb99ec3be11c4b08cf235c34bb7"
+name = "Share-Cart"
+application_url = "https://example.com"
+embedded = true
+
+[build]
+automatically_update_urls_on_dev = true
+include_config_on_deploy = true
+
+[webhooks]
+api_version = "2026-01"
+
+  [[webhooks.subscriptions]]
+  topics = [ "app/uninstalled" ]
+  uri = "/webhooks/app/uninstalled"
+
+  [[webhooks.subscriptions]]
+  topics = [ "app/scopes_update" ]
+  uri = "/webhooks/app/scopes_update"
+
+[access_scopes]
+# write_app_proxy: serves the share/redeem endpoints from the shop's own origin.
+scopes = "write_app_proxy"
+
+# Storefront /apps/share-cart/*  ->  app /proxy/*
+# Merchants can rename `subpath` in admin, and it is immutable per install -- which is why
+# the Shop row stores the real value rather than the app hardcoding this one.
+[app_proxy]
+url = "/proxy"
+prefix = "apps"
+subpath = "share-cart"
+
+[auth]
+redirect_urls = [ "https://example.com/api/auth" ]

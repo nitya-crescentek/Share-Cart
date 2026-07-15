@@ -1,0 +1,30 @@
+<div
+  data-sharecart
+  data-proxy-path="{{ block.settings.proxy_path }}"
+  data-label="{{ block.settings.button_label }}"
+  {{ block.shopify_attributes }}
+></div>
+
+{% schema %}
+{
+  "name": "Share cart",
+  "target": "section",
+  "stylesheet": "share-cart.css",
+  "javascript": "share-cart.js",
+  "settings": [
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Button label",
+      "default": "Share cart"
+    },
+    {
+      "type": "text",
+      "id": "proxy_path",
+      "label": "App proxy path",
+      "info": "Only change this if you renamed the app proxy subpath under Settings > Apps.",
+      "default": "/apps/share-cart"
+    }
+  ]
+}
+{% endschema %}
