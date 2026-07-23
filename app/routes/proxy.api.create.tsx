@@ -31,8 +31,9 @@ export async function action({ request }: ActionFunctionArgs) {
     },
   });
 
-  const url = new URL(request.url);
-  const link = `${url.origin}/apps/share-cart/c/${share.code}`;
+  // Build the link on the shop's own domain, NOT request.url -- a proxied request reaches
+  // the app at the tunnel/app URL, so request.url's origin is the tunnel, not the storefront.
+  const link = `https://${session.shop}/apps/share-cart/c/${share.code}`;
 
   return Response.json({ code: share.code, url: link });
 }

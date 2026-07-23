@@ -1,4 +1,9 @@
-import { useLoaderData, type LoaderFunctionArgs } from "react-router";
+import {
+  Form,
+  useLoaderData,
+  type ActionFunctionArgs,
+  type LoaderFunctionArgs,
+} from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import type { HeadersArgs } from "react-router";
 import { authenticate } from "../shopify.server";
@@ -10,16 +15,28 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const shares = await prisma.sharedCart.findMany({
     where: { shop: session.shop },
     orderBy: { createdAt: "desc" },
-    take: 20,
+    take: 50,
   });
 
   return {
     shares: shares.map((share) => ({
       code: share.code,
+      url: `https://${session.shop}/apps/share-cart/c/${share.code}`,
       itemCount: Array.isArray(share.items) ? share.items.length : 0,
       createdAt: share.createdAt.toISOString(),
     })),
   };
+}
+
+export async function action({ request }: ActionFunctionArgs) {
+  const { session } = await authenticate.admin(request);
+
+  const form = await request.formData();
+  if (form.get("intent") === "clear") {
+    await prisma.sharedCart.deleteMany({ where: { shop: session.shop } });
+  }
+
+  return { ok: true };
 }
 
 export default function Index() {
@@ -35,11 +52,23 @@ export default function Index() {
         </s-paragraph>
       </s-section>
 
-      <s-section heading="Recent shares">
+      <s-section heading="Shared links">
         {shares.length === 0 ? (
           <s-paragraph>No carts have been shared yet.</s-paragraph>
         ) : (
           <s-stack direction="block" gap="base">
+            <s-stack direction="inline" gap="base" alignItems="center">
+              <s-text tone="neutral">
+                {shares.length} link{shares.length === 1 ? "" : "s"}
+              </s-text>
+              <Form method="post">
+                <input type="hidden" name="intent" value="clear" />
+                <s-button type="submit" variant="tertiary" tone="critical">
+                  Clear all links
+                </s-button>
+              </Form>
+            </s-stack>
+
             {shares.map((share) => (
               <s-box
                 key={share.code}
@@ -47,11 +76,15 @@ export default function Index() {
                 borderWidth="base"
                 borderRadius="base"
               >
-                <s-text>
-                  <b>{share.code}</b> · {share.itemCount} item
-                  {share.itemCount === 1 ? "" : "s"} ·{" "}
-                  {new Date(share.createdAt).toLocaleDateString()}
-                </s-text>
+                <s-stack direction="block" gap="small-100">
+                  <s-link href={share.url} target="_blank">
+                    {share.url}
+                  </s-link>
+                  <s-text tone="neutral">
+                    {share.itemCount} item{share.itemCount === 1 ? "" : "s"} ·{" "}
+                    {new Date(share.createdAt).toLocaleString()}
+                  </s-text>
+                </s-stack>
               </s-box>
             ))}
           </s-stack>

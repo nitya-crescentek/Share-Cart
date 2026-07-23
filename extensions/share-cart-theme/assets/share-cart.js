@@ -48,45 +48,68 @@
     return Promise.reject();
   }
 
-  function showLink(url) {
-    if (navigator.share) {
-      navigator.share({ title: "Shared cart", url: url }).catch(function () {});
-      return;
-    }
-    copy(url).then(
-      function () {
-        window.prompt("Link copied! Share it:", url);
-      },
-      function () {
-        window.prompt("Copy this link to share your cart:", url);
-      },
-    );
+  // Replace the button with the generated link and a copy button.
+  function showResult(host, url) {
+    host.innerHTML = "";
+
+    var wrap = document.createElement("div");
+    wrap.className = "sharecart-result";
+
+    var input = document.createElement("input");
+    input.className = "sharecart-link";
+    input.type = "text";
+    input.readOnly = true;
+    input.value = url;
+    input.setAttribute("aria-label", "Share link");
+
+    var copyBtn = document.createElement("button");
+    copyBtn.type = "button";
+    copyBtn.className = "sharecart-copy-btn";
+    copyBtn.textContent = "Copy";
+    copyBtn.addEventListener("click", function () {
+      copy(url).then(
+        function () {
+          copyBtn.textContent = "Copied!";
+          setTimeout(function () {
+            copyBtn.textContent = "Copy";
+          }, 2000);
+        },
+        function () {
+          input.select();
+        },
+      );
+    });
+
+    wrap.appendChild(input);
+    wrap.appendChild(copyBtn);
+    host.appendChild(wrap);
+
+    input.focus();
+    input.select();
   }
 
-  function onClick(button) {
+  function onClick(host, button) {
     if (button.disabled) return;
-    var label = button.textContent;
     button.disabled = true;
+    var label = button.textContent;
     button.textContent = "Creating link…";
 
     readCart()
       .then(function (cart) {
         if (!cart.items || !cart.items.length) throw new Error("empty_cart");
-        return createShare(button.getAttribute("data-proxy-path"), toItems(cart));
+        return createShare(host.getAttribute("data-proxy-path"), toItems(cart));
       })
       .then(function (result) {
-        showLink(result.url);
+        showResult(host, result.url);
       })
       .catch(function (err) {
+        button.disabled = false;
+        button.textContent = label;
         window.alert(
           err && err.message === "empty_cart"
             ? "Add something to your cart before sharing it."
             : "Couldn't create a share link. Please try again.",
         );
-      })
-      .then(function () {
-        button.disabled = false;
-        button.textContent = label;
       });
   }
 
@@ -96,16 +119,17 @@
       if (host.__wired) return;
       host.__wired = true;
 
+      host.setAttribute(
+        "data-proxy-path",
+        (host.getAttribute("data-proxy-path") || "/apps/share-cart").replace(/\/+$/, ""),
+      );
+
       var button = document.createElement("button");
       button.type = "button";
       button.className = "sharecart-btn";
       button.textContent = host.getAttribute("data-label") || "Share cart";
-      button.setAttribute(
-        "data-proxy-path",
-        (host.getAttribute("data-proxy-path") || "/apps/share-cart").replace(/\/+$/, ""),
-      );
       button.addEventListener("click", function () {
-        onClick(button);
+        onClick(host, button);
       });
       host.appendChild(button);
     });

@@ -18,3 +18,34 @@
   opacity: 0.6;
   cursor: default;
 }
+
+.sharecart-result {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.sharecart-link {
+  flex: 1;
+  min-width: 0;
+  padding: 12px 14px;
+  font: inherit;
+  font-size: 13px;
+  border: 1px solid currentColor;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+}
+
+.sharecart-copy-btn {
+  flex: none;
+  padding: 12px 20px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  border: 1px solid currentColor;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
